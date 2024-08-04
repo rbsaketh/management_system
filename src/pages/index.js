@@ -1,5 +1,4 @@
 // pages/index.js
-'use client';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { Box, Typography, Button } from '@mui/material';
