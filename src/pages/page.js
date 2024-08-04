@@ -1,10 +1,8 @@
 // pages/home.js
-'use client';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { getAuth, onAuthStateChanged, signOut } from 'firebase/auth';
 import { firestore } from '../../firebase';
-
 import {
   Box,
   Modal,
@@ -22,10 +20,12 @@ import {
   deleteDoc,
   serverTimestamp,
 } from 'firebase/firestore';
+import CameraComponent from '../components/CameraComponent'; // Adjust the path as needed
 
 export default function Home() {
   const [inventory, setInventory] = useState([]);
   const [open, setOpen] = useState(false);
+  const [cameraOpen, setCameraOpen] = useState(false);
   const [itemName, setItemName] = useState('');
   const [itemQuantity, setItemQuantity] = useState(1);
   const [user, setUser] = useState(null);
@@ -33,11 +33,11 @@ export default function Home() {
   const auth = getAuth();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       if (currentUser) {
         setUser(currentUser);
-        await createUserDocument(currentUser);
-        await updateInventory(currentUser.uid);
+        createUserDocument(currentUser);
+        updateInventory(currentUser.uid);
       } else {
         router.push('/');
       }
@@ -83,8 +83,8 @@ export default function Home() {
     const inventoryList = [];
     docs.forEach((doc) => {
       inventoryList.push({
-        id: doc.id,          // Unique ID for the inventory item
-        ...doc.data(),       // Include all fields (name, quantity, etc.)
+        id: doc.id,
+        ...doc.data(),
       });
     });
     setInventory(inventoryList);
@@ -147,6 +147,9 @@ export default function Home() {
       <Button variant="contained" onClick={handleOpen} sx={{ mt: 2, mb: 2 }}>
         Add New Item
       </Button>
+      <Button variant="contained" onClick={() => setCameraOpen(true)} sx={{ mb: 2 }}>
+        Add Item with Camera
+      </Button>
 
       <Modal open={open} onClose={handleClose}>
         <Box
@@ -194,6 +197,25 @@ export default function Home() {
         </Box>
       </Modal>
 
+      <Modal open={cameraOpen} onClose={() => setCameraOpen(false)}>
+        <Box
+          position="absolute"
+          top="50%"
+          left="50%"
+          transform="translate(-50%, -50%)"
+          width={400}
+          bgcolor="white"
+          border="2px solid #000"
+          boxShadow={24}
+          p={4}
+          display="flex"
+          flexDirection="column"
+          gap={3}
+        >
+          <CameraComponent refreshItems={() => updateInventory(user?.uid)} />
+        </Box>
+      </Modal>
+
       <Box width="800px" border="1px solid #333" borderRadius={2} overflow="auto">
         <Typography variant="h2" align="center" bgcolor="#ADD8E6" p={2}>
           Inventory Items
@@ -210,8 +232,8 @@ export default function Home() {
               borderRadius={1}
               boxShadow={1}
             >
-              <Typography variant="h6">{item.name}</Typography> {/* Display item name */}
-              <Typography variant="h6">Quantity: {item.quantity}</Typography> {/* Display item quantity */}
+              <Typography variant="h6">{item.name}</Typography>
+              <Typography variant="h6">Quantity: {item.quantity}</Typography>
               <Stack direction="row" spacing={1}>
                 <Button variant="contained" color="primary" onClick={() => incrementItem(item)}>
                   +
