@@ -64,7 +64,6 @@ const CameraComponent = ({ refreshItems }) => {
 
     setLoading(true);
     try {
-      console.log("about to fetch")
       const response = await fetch("http://localhost:5000/api/classify-image", {
         method: "POST",
         headers: {
@@ -77,7 +76,6 @@ const CameraComponent = ({ refreshItems }) => {
           apiKey // OpenAI API Key from user input
         })
       });
-      console.log("did fetch")
       const result = await response.json();
 
       if (result.success) {
