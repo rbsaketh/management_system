@@ -3,7 +3,7 @@ import Webcam from 'react-webcam';
 import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, DialogContentText, TextField, CircularProgress, Typography } from '@mui/material';
 import { Cancel } from '@mui/icons-material';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
-import { useAlert } from './useAlert';
+import { useAlert } from '../context/useAlert';
 
 const CameraComponent = ({ refreshItems }) => {
   const webcamRef = useRef(null);
@@ -11,12 +11,11 @@ const CameraComponent = ({ refreshItems }) => {
   const [loading, setLoading] = useState(false);
   const [openModal, setOpenModal] = useState(false);
   const [cameraSupported, setCameraSupported] = useState(true);
-  const [user, setUser] = useState(null);  // State for user
+  const [user, setUser] = useState(null);
   const alert = useAlert();
   const [apiKey, setApiKey] = useState("");
 
   useEffect(() => {
-    // Check for camera access
     navigator.mediaDevices.getUserMedia({ video: true })
       .then(() => setCameraSupported(true))
       .catch((err) => {
@@ -24,17 +23,16 @@ const CameraComponent = ({ refreshItems }) => {
         setCameraSupported(false);
       });
 
-    // Set up authentication state observer
     const auth = getAuth();
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       if (currentUser) {
-        setUser(currentUser);  // Set the authenticated user
+        setUser(currentUser);
       } else {
-        setUser(null);  // Clear user state
+        setUser(null);
       }
     });
 
-    return () => unsubscribe();  // Cleanup subscription on unmount
+    return () => unsubscribe();
   }, [alert]);
 
   const capturePhoto = () => {
@@ -52,34 +50,46 @@ const CameraComponent = ({ refreshItems }) => {
 
   const handleAdd = async () => {
     if (!user) {
-      alert.error("You need to be signed in to add items.");
+      // alert.error("You need to be signed in to add items.");
+      console.log("Signed")
+      return;
+    }
+
+    if (!apiKey) {
+      // alert.error("OpenAI API key is required.");
+      console.log("no key")
+
       return;
     }
 
     setLoading(true);
     try {
+      console.log("about to fetch")
       const response = await fetch("http://localhost:5000/api/classify-image", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
         },
+        
         body: JSON.stringify({
           image, // Base64 image data
-          userId: user.uid // Firebase user ID
+          userId: user.uid, // Firebase user ID
+          apiKey // OpenAI API Key from user input
         })
       });
-
+      console.log("did fetch")
       const result = await response.json();
 
       if (result.success) {
-        alert.success(result.message);
+        // alert.success(result.message);
       } else {
+        console.error(result.message);
       }
 
       refreshItems();
     } catch (error) {
       console.error(error);
-      alert.error("Failed to classify the item. Please try again.");
+      // alert.error("Failed to classify the item. Please try again.");
     } finally {
       setOpenModal(false);
       setLoading(false);
@@ -88,7 +98,7 @@ const CameraComponent = ({ refreshItems }) => {
   };
 
   return (
-    <Box className="flex flex-col items-center">
+    <Box>
       <Typography variant="h4" gutterBottom>
         Pantry Item Classifier
       </Typography>

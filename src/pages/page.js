@@ -1,4 +1,3 @@
-// pages/home.js
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { getAuth, onAuthStateChanged, signOut } from 'firebase/auth';
@@ -21,11 +20,13 @@ import {
   serverTimestamp,
 } from 'firebase/firestore';
 import CameraComponent from '../components/CameraComponent'; // Adjust the path as needed
+import RecipeComponent from '../components/RecipeComponent'; // Adjust the path as needed
 
 export default function Home() {
   const [inventory, setInventory] = useState([]);
   const [open, setOpen] = useState(false);
   const [cameraOpen, setCameraOpen] = useState(false);
+  const [recipeOpen, setRecipeOpen] = useState(false);
   const [itemName, setItemName] = useState('');
   const [itemQuantity, setItemQuantity] = useState(1);
   const [user, setUser] = useState(null);
@@ -133,6 +134,8 @@ export default function Home() {
 
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
+  const handleRecipeOpen = () => setRecipeOpen(true);
+  const handleRecipeClose = () => setRecipeOpen(false);
 
   return (
     <Box
@@ -142,6 +145,7 @@ export default function Home() {
       flexDirection="column"
       alignItems="center"
       p={2}
+      sx={{ overflowY: 'scroll' }}
     >
       <Typography variant="h1">Inventory Management</Typography>
       <Button variant="contained" onClick={handleOpen} sx={{ mt: 2, mb: 2 }}>
@@ -150,12 +154,15 @@ export default function Home() {
       <Button variant="contained" onClick={() => setCameraOpen(true)} sx={{ mb: 2 }}>
         Add Item with Camera
       </Button>
+      <Button variant="contained" color="secondary" onClick={handleRecipeOpen} sx={{ mb: 2 }}>
+        Generate Recipe
+      </Button>
 
       <Modal open={open} onClose={handleClose}>
         <Box
           position="absolute"
-          top="50%"
-          left="50%"
+          top="20%"
+          left="35%"
           transform="translate(-50%, -50%)"
           width={400}
           bgcolor="white"
@@ -200,8 +207,8 @@ export default function Home() {
       <Modal open={cameraOpen} onClose={() => setCameraOpen(false)}>
         <Box
           position="absolute"
-          top="50%"
-          left="50%"
+          top="20%"
+          left="35%"
           transform="translate(-50%, -50%)"
           width={400}
           bgcolor="white"
@@ -213,6 +220,26 @@ export default function Home() {
           gap={3}
         >
           <CameraComponent refreshItems={() => updateInventory(user?.uid)} />
+        </Box>
+      </Modal>
+
+      <Modal open={recipeOpen} onClose={handleRecipeClose} top = "20%" left = "50%">
+        <Box
+          position="absolute"
+          top="5%"
+          left="30%"
+          transform="translate(-50%, -50%)"
+          width={600}
+          bgcolor="white"
+          border="2px solid #000"
+          boxShadow={24}
+          p={4}
+          display="flex"
+          flexDirection="column"
+          gap={3}
+          marginBottom={5000} // Add vertical scrollbar
+        >
+          <RecipeComponent userId={user?.uid} />
         </Box>
       </Modal>
 

@@ -1,5 +1,5 @@
 // pages/_app.js
-import { AuthProvider } from '../components/useAuth';
+import { AuthProvider } from '../context/useAuth';
 
 function MyApp({ Component, pageProps }) {
   return (
