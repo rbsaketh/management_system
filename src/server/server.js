@@ -8,7 +8,7 @@ const { getFirestore } = require('firebase-admin/firestore');
 const { v4: uuidv4 } = require('uuid');
 const fs = require('fs');
 const path = require('path');
-const serviceAccount = require("../../inventory.json");
+const serviceAccount = JSON.parse(Buffer.from(process.env.FIREBASE_CREDENTIALS, 'base64').toString('utf8'));
 const app = express();
 const port = process.env.PORT || 5000;
 
