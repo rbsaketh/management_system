@@ -8,13 +8,20 @@ const { getFirestore } = require('firebase-admin/firestore');
 const { v4: uuidv4 } = require('uuid');
 const fs = require('fs');
 const path = require('path');
+const next = require('next');
+
 const serviceAccount = JSON.parse(Buffer.from(process.env.FIREBASE_CREDENTIALS, 'base64').toString('utf8'));
-const app = express();
+
+const dev = process.env.NODE_ENV !== 'production';
+const app = next({ dev });
+const handle = app.getRequestHandler();
+
+const server = express();
 const port = process.env.PORT || 5000;
 
 // Middleware
-app.use(cors());
-app.use(bodyParser.json({ limit: '50mb' })); // Increase limit if needed
+server.use(cors());
+server.use(bodyParser.json({ limit: '50mb' })); // Increase limit if needed
 
 // Initialize Firebase Admin SDK
 if (!getApps().length) {
@@ -32,7 +39,7 @@ const saveBase64Image = (base64Image, filePath) => {
 };
 
 // API route to generate recipe using Llama 3.1
-app.post('/api/generate-recipe', async (req, res) => {
+server.post('/api/generate-recipe', async (req, res) => {
   const { userId, apiKey } = req.body;
 
   if (!apiKey) {
@@ -81,7 +88,7 @@ app.post('/api/generate-recipe', async (req, res) => {
 });
 
 // API route to classify image using GPT-4
-app.post('/api/classify-image', async (req, res) => {
+server.post('/api/classify-image', async (req, res) => {
   const { image, userId, apiKey } = req.body;
 
   if (!apiKey) {
@@ -156,7 +163,16 @@ app.post('/api/classify-image', async (req, res) => {
   }
 });
 
-// Start the server
-app.listen(port, () => {
-  console.log(`Server is running on port: ${port}`);
+// Handling Next.js requests
+app.prepare().then(() => {
+  // Next.js will handle all other routes
+  server.all('*', (req, res) => {
+    return handle(req, res);
+  });
+
+  // Start the server
+  server.listen(port, (err) => {
+    if (err) throw err;
+    console.log(`Server is running on port: ${port}`);
+  });
 });
