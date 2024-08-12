@@ -11,7 +11,7 @@ const RecipeComponent = ({ userId }) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch("http://localhost:5000/api/generate-recipe", {
+      const response = await fetch("https://management-system-9hb0.onrender.com/api/generate-recipe", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
